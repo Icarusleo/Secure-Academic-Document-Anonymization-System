@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PDF İçeriği</title>
+    <style>
+        body {
+            white-space: pre-wrap; /* Satır sonlarını korur */
+            font-family: Arial, sans-serif;
+        }
+        .pdf-content {
+            border: 1px solid #ccc;
+            padding: 20px;
+            
+            overflow-y: scroll; /* Kaydırma çubuğu */
+        }
+    </style>
+</head>
+<body>
+    <h1>PDF İçeriği</h1>
+    <div class="pdf-content">
+        {% for paragraph in pdf_text.splitlines %}
+    <p>{{ paragraph }}</p>
+{% endfor %}
+    </div>
+</body>
+</html>

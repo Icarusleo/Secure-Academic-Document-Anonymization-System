@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Makale Mesajlaşma Paneli</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f6f8;
+      margin: 0;
+      padding: 40px;
+      color: #2d3436;
+    }
+
+    h2 {
+      text-align: center;
+      color: #2c3e50;
+    }
+
+    h3 {
+      text-align: center;
+      margin-top: 10px;
+      font-weight: normal;
+      color: #636e72;
+    }
+
+    .article-info {
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 1.1em;
+    }
+
+    .message-box {
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      max-width: 700px;
+      margin: 0 auto 40px auto;
+      border: 1px solid #dcdde1;
+    }
+
+    .message-box p {
+      margin: 10px 0;
+      line-height: 1.5;
+      font-size: 1em;
+    }
+
+    .message-box strong {
+      color: #0984e3;
+    }
+
+    .message-form {
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      max-width: 700px;
+      margin: 0 auto;
+      border: 1px solid #dcdde1;
+    }
+
+    .message-form textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      resize: vertical;
+      font-size: 1em;
+      background-color: #f8f9fa;
+    }
+
+    .message-form button {
+      background-color: #0984e3;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 1em;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background-color 0.3s;
+    }
+
+    .message-form button:hover {
+      background-color: #0872c6;
+    }
+  </style>
+</head>
+<body>
+  <h2>Makale Mesajlaşma Paneli</h2>
+  <h3>{{ article.name }}</h3>
+  <div class="article-info">
+    <p><strong>Yükleme Tarihi:</strong> {{ article.upload_date }}</p>
+  </div>
+
+  <div class="message-box">
+    {% for m in messages %}
+      <p><strong>{{ m.email }}:</strong> {{ m.content }}</p>
+    {% empty %}
+      <p>Bu makale için henüz mesaj yok.</p>
+    {% endfor %}
+  </div>
+
+  <form method="post" action="{% url 'send_message' %}" class="message-form">
+    {% csrf_token %}
+    <input type="hidden" name="article_id" value="{{ article.id }}">
+    <textarea name="message_content" rows="4" placeholder="Mesajınızı yazın..." required></textarea><br>
+    <button type="submit">Mesaj Gönder</button>
+  </form>
+</body>
+</html>

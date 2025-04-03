@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Yönetici Paneli</title>
+    <style>
+        /* admin_panel.css */
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f6f9;
+    margin: 20px auto;
+    padding: 40px;
+    max-width: 1000px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+h2 {
+    font-size: 28px;
+    color: #2c3e50;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #ecf0f1;
+    padding-bottom: 8px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 30px;
+}
+
+th, td {
+    text-align: left;
+    padding: 12px 15px;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background-color: #3498db;
+    color: white;
+    font-weight: normal;
+}
+
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+tr:hover {
+    background-color: #e0f0ff;
+}
+
+a {
+    color: #2980b9;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+    </style>
+</head>
+<body>
+    <h2>Yönetici Paneli</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Makale No</th>
+                <th>E-posta</th>
+                <th>Tarih</th>
+                <th>İşlem</th>
+                <th>İşlem</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for article in articles %}
+            <tr>
+                <td>{{ article.article_no }}</td>
+                <td>{{ article.email }}</td>
+                <td>{{ article.created_at }}</td>
+                <td><a href="{% url 'article_detail_admin' article.pk %}">Detay</a></td>
+                <td><a href="{% url 'article_messages' article.pk %}">Mesajlar</a></td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="empty-state">Gösterilecek makale bulunamadı</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Query Article Status & Send Message</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+            padding: 30px 20px;
+            color: #2d3436;
+        }
+    
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 40px;
+            font-size: 2.2em;
+        }
+    
+        h2 {
+            color: #0984e3;
+            font-size: 1.5em;
+            border-bottom: 2px solid #dfe6e9;
+            padding-bottom: 6px;
+            margin-top: 40px;
+            margin-bottom: 20px;
+        }
+    
+        h3 {
+            font-size: 1.2em;
+            margin-top: 25px;
+            color: #34495e;
+        }
+    
+        form {
+            background-color: #ffffff;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+            margin-bottom: 30px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    
+        form p {
+            margin: 15px 0;
+        }
+    
+        form label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 6px;
+            color: #555;
+        }
+    
+        form input[type="text"],
+        form input[type="email"],
+        form input[type="file"],
+        form textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1em;
+            margin-bottom: 15px;
+            background-color: #f9f9f9;
+        }
+    
+        form textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+    
+        form button {
+            background-color: #00b894;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+    
+        form button:hover {
+            background-color: #009b72;
+        }
+    
+        .article-details {
+            background-color: #ffffff;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.7;
+        }
+    
+        .article-details a {
+            color: #0984e3;
+            text-decoration: none;
+            font-weight: 500;
+        }
+    
+        .article-details a:hover {
+            text-decoration: underline;
+        }
+    
+        .not-found {
+            color: #d63031;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 20px;
+        }
+    
+        .success-message {
+            color: #00b894;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 20px;
+        }
+    
+        #messageList {
+            max-width: 700px;
+            margin: 0 auto 40px auto;
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            padding: 20px;
+        }
+    
+        #messageList p {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            color: #333;
+        }
+    
+        #messageList p:last-child {
+            border-bottom: none;
+        }
+    
+        .pdf-link {
+            margin-top: 10px;
+            display: inline-block;
+            background-color: #dfe6e9;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.95em;
+            color: #2d3436;
+            transition: background-color 0.3s;
+        }
+    
+        .pdf-link:hover {
+            background-color: #b2bec3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Query Article</h1>
+
+    <h2>Search for an Article</h2>
+    <form method="post" action="">
+        {% csrf_token %}
+        {{ query_form.as_p }}
+        <button type="submit" name="query">Search</button>
+    </form>
+
+    {% if article %}
+    <h2>Article Details</h2>
+    <div class="article-details">
+        <p><strong>Article Number:</strong> {{ article.article_no }}</p>
+        <p>✅ <strong>Uploaded PDF:</strong> 
+            <a href="{{ article.article_pdf.url }}" target="_blank">PDF'yi Görüntüle / İndir</a>
+        </p>
+        <p><strong>Email:</strong> {{ article.email }}</p>
+        <p><strong>Article Status:</strong> {{ article.status }}</p>
+        <h3>PDF Dosyasını Güncelle</h3>
+        <form method="post" action="{% url 'update_uploaded_pdf' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="file" name="new_pdf" accept="application/pdf" required>
+            <input type="hidden" name="article_id" value="{{ article.id }}">
+            <button type="submit">Yeni PDF Yükle</button>
+        </form>
+        {% if article.status == "Result Sent to Author" %}
+        <p>✅ <strong>Final PDF:</strong> 
+            <a href="{{ article.final_pdf.url }}" target="_blank">PDF'yi Görüntüle / İndir</a>
+        </p>
+    {% endif %}
+    </div>
+    
+
+    <h2>Send a Message</h2>
+    <form id="messageForm">
+        {% csrf_token %}
+        {{ message_form.as_p }}
+        <input type="hidden" name="article_id" value="{{ article.id }}">
+        <button type="submit">Send Message</button>
+    </form>
+
+    <h2>Previous Messages</h2>
+    <div class="article-details" id="messageList">
+        {% for msg in messages_for_article %}
+            <p><strong>{{ msg.email }}:</strong> {{ msg.content }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const form = document.getElementById("messageForm");
+            const messageList = document.getElementById("messageList");
+            form.addEventListener("submit", async function(e) {
+                e.preventDefault();
+                const formData = new FormData(form);
+                const response = await fetch("", {
+                    method: "POST",
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest"
+                    },
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    const newMsg = document.createElement("p");
+                    newMsg.innerHTML = `<strong>${result.email}:</strong> ${result.content}`;
+                    messageList.appendChild(newMsg);
+                    form.querySelector("textarea").value = "";
+                } else {
+                    alert("Mesaj gönderilirken hata oluştu.");
+                }
+            });
+        });
+    </script>
+</body>
+</html>

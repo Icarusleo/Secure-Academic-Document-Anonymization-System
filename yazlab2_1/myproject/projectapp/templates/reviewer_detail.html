@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Hakem Paneli</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+        }
+        h2 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        .article {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 800px;
+        }
+        .article h4 {
+            margin-top: 0;
+            color: #34495e;
+        }
+        .article p {
+            color: #555;
+        }
+        .article a {
+            display: inline-block;
+            margin-bottom: 10px;
+            color: #3498db;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .article a:hover {
+            text-decoration: underline;
+        }
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            resize: vertical;
+            font-size: 14px;
+        }
+        button {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #219150;
+        }
+        .no-article {
+            text-align: center;
+            color: #888;
+            font-style: italic;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Hakem Paneli — {{ email }}</h2>
+
+{% for a in articles %}
+  <div class="article">
+    <h4>{{ a.article_no }}</h4>
+    <p>Yükleme Tarihi: {{ a.upload_date }}</p>
+    <a href="{% url 'view_pdf_encrypted' a.encrypted_id %}" target="_blank">PDF'yi Görüntüle</a>
+    {% if a.status == "Awaiting review" %}
+        <form method="post" action="{% url 'submit_review_form' %}">
+          {% csrf_token %} 
+          <input type="hidden" name="article_id" value="{{ a.id }}">
+          <textarea id="content_{{ a.id }}" name="content" rows="4" placeholder="Yorum yazın..." required></textarea>
+          <button type="submit">Yorumu Gönder</button>
+        </form>
+    {% elif a.status == "Result Sent to Author" %}
+        <p>✅ <strong>Değerlendirme Yazara Gönderildi İşlem Yapılamaz</strong> </p>
+    {% elif a.status == "Article Reviewed" %}
+        <form method="post" action="{% url 'cancel_review' %}">
+            {% csrf_token %}
+            <li>Değerlendirme Editör Onayı Bekliyor.</li>
+            <input type="hidden" name="article_id" value="{{ a.id }}">
+            <button type="submit" style="background-color:#e74c3c; color:white; padding:10px 20px; border:none; border-radius:5px; cursor:pointer;">
+                Değerlendirmeyi İptal Et
+              </button>
+        </form>
+    {% endif %}    
+  </div>
+{% empty %}
+  <p class="no-article">Bu hakeme atanmış makale yok.</p>
+{% endfor %}
+
+</body>
+</html>

@@ -1,0 +1,67 @@
+<h2>Hakem Paneli</h2>
+<label>E-posta:</label>
+<input type="email" id="email-input" placeholder="hakem@example.com" />
+
+<div id="assignment-results"></div>
+
+<script>
+document.getElementById("email-input").addEventListener("input", function () {
+    const email = this.value;
+    if (!email.includes("@")) return;
+
+    fetch(`/api/reviewer-data/?email=${encodeURIComponent(email)}`)
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById("assignment-results");
+            container.innerHTML = "";
+
+            if (data.assignments.length === 0) {
+                container.innerHTML = "<p>Bu e-posta için atanmış makale bulunamadı.</p>";
+                return;
+            }
+
+            data.assignments.forEach(assignment => {
+                const div = document.createElement("div");
+                div.innerHTML = `
+                    <hr>
+                    <h3>Makale: ${assignment.article_name}</h3>
+                    <iframe src="${assignment.article_pdf}" width="100%" height="500px"></iframe>
+                    <h4>Yorum Yaz:</h4>
+                    <form class="review-form" data-article-id="${assignment.article_id}">
+                        <textarea name="content" rows="4" cols="60" placeholder="Yorumunuzu yazın..." required></textarea><br>
+                        <button type="submit">Yorumu Gönder</button>
+                    </form>
+                    <div class="success-msg" style="color: green;"></div>
+                `;
+                container.appendChild(div);
+            });
+
+            // Formlara submit event ekle
+            document.querySelectorAll(".review-form").forEach(form => {
+                form.addEventListener("submit", function (e) {
+                    e.preventDefault();
+                    const articleId = this.dataset.articleId;
+                    const content = this.querySelector("textarea").value;
+
+                    const formData = new FormData();
+                    formData.append("article_id", articleId);
+                    formData.append("content", content);
+
+                    fetch("/api/submit-review/", {
+                        method: "POST",
+                        body: formData,
+                    })
+                    .then(res => res.json())
+                    .then(res => {
+                        if (res.status === "success") {
+                            this.nextElementSibling.innerText = "✅ Yorum başarıyla kaydedildi.";
+                            this.querySelector("textarea").value = "";
+                        } else {
+                            this.nextElementSibling.innerText = "❌ Yorum kaydedilemedi.";
+                        }
+                    });
+                });
+            });
+        });
+});
+</script>

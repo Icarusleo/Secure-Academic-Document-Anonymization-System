@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Makale Detayı - Editör Paneli</title>
+    <style>
+        /* editor_panel.css */
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f9f9f9;
+    color: #333;
+    margin: 20px auto;
+    padding: 40px;
+    max-width: 900px;
+    border-radius: 10px;
+    background-color: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+h2, h3, h4 {
+    color: #2c3e50;
+    margin-top: 30px;
+    border-bottom: 2px solid #ecf0f1;
+    padding-bottom: 5px;
+}
+
+h2 {
+    font-size: 26px;
+}
+
+h3 {
+    font-size: 20px;
+}
+
+h4 {
+    font-size: 18px;
+    margin-top: 20px;
+}
+
+ul {
+    list-style-type: disc;
+    margin-left: 20px;
+    margin-bottom: 20px;
+}
+
+li {
+    margin-bottom: 5px;
+}
+
+strong {
+    color: #34495e;
+}
+
+hr {
+    border: none;
+    height: 1px;
+    background-color: #ddd;
+    margin: 30px 0;
+}
+
+form {
+    margin-top: 20px;
+    background-color: #f0f4f8;
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid #dfe6ec;
+}
+
+label {
+    font-weight: bold;
+    display: block;
+    margin-top: 10px;
+}
+
+input[type="text"], select, textarea {
+    width: 100%;
+    padding: 8px 10px;
+    margin-top: 5px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+button {
+    background-color: #3498db;
+    color: white;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+button:hover {
+    background-color: #2980b9;
+}
+
+a {
+    color: #2980b9;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+p {
+    margin-bottom: 10px;
+}
+
+    </style>
+</head>
+<body>
+
+<h2>📄 Makale Detayı</h2>
+
+<p><strong>Makale No:</strong> {{ article.article_no }}</p>
+<p><strong>E-posta:</strong> {{ article.email }}</p>
+
+<hr>
+
+<h3>📍 Otomatik Tespit Edilen Bilgiler</h3>
+
+<h4>İsimler:</h4>
+<ul>
+    {% for name in authors_info.names %}
+        <li>{{ name }}</li>
+    {% empty %}
+        <li>Yok</li>
+    {% endfor %}
+</ul>
+
+<h4>E-posta Adresleri:</h4>
+<ul>
+    {% for email in authors_info.emails %}
+        <li>{{ email }}</li>
+    {% empty %}
+        <li>Yok</li>
+    {% endfor %}
+</ul>
+
+<h4>Kurumlar:</h4>
+<ul>
+    {% for uni in authors_info.universities %}
+        <li>{{ uni }}</li>
+    {% empty %}
+        <li>Yok</li>
+    {% endfor %}
+</ul>
+
+<hr>
+
+<h3>🔐 Anonimleştirme</h3>
+
+<style>
+    .toggle-btn {
+        background-color: #27ae60;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        margin: 6px 0;
+        border-radius: 4px;
+        font-size: 14px;
+        cursor: pointer;
+    }
+    .toggle-btn:hover {
+        background-color: #219150;
+    }
+    </style>
+    
+    <form method="post">
+        {% csrf_token %}
+    
+        <h4>İsimleri Anonimleştir:</h4>
+        <button type="button" class="toggle-btn" onclick="toggleAll('id_names')">Tümünü Seç / Bırak</button>
+        {{ form.names }}
+    
+        <h4>E-postaları Anonimleştir:</h4>
+        <button type="button" class="toggle-btn" onclick="toggleAll('id_emails')">Tümünü Seç / Bırak</button>
+        {{ form.emails }}
+    
+        <h4>Kurumları Anonimleştir:</h4>
+        <button type="button" class="toggle-btn" onclick="toggleAll('id_universities')">Tümünü Seç / Bırak</button>
+        {{ form.universities }}
+    
+        <button type="submit" name="anonymize_btn" >Seçilen Bilgileri Anonimleştir</button>
+    </form>
+<script>
+function toggleAll(fieldId) {
+    const checkboxes = document.querySelectorAll(`#${fieldId} input[type="checkbox"]`);
+    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+    checkboxes.forEach(cb => cb.checked = !allChecked);
+}
+</script>
+{% if article.anonymized_pdf %}
+    <p>✅ <strong>Anonimleştirilmiş PDF:</strong> 
+        <a href="{{ article.anonymized_pdf.url }}" target="_blank">PDF'yi Görüntüle / İndir</a>
+    </p>
+{% endif %}
+
+<hr>
+
+<h3>🧠 Makale Alanları (Anahtar Kelimelerden)</h3>
+<ul>
+    {% for field in matched_fields %}
+        <li>{{ field }}</li>
+    {% empty %}
+        <li>Alan tespit edilemedi.</li>
+    {% endfor %}
+</ul>
+
+<h3>👨‍⚖️ Uygun Hakemler</h3>
+<ul>
+    {% for reviewer in suggested_reviewers %}
+        <li>{{ reviewer.email }} - <small>İlgi alanları: {{ reviewer.interested_subfields }}</small></li>
+    {% empty %}
+        <li>Uygun hakem bulunamadı.</li>
+    {% endfor %}
+</ul>
+
+<form method="post">
+    {% csrf_token %}
+    <label for="reviewer_email">Hakem E-Posta:</label>
+    {{ reviewer_form.reviewer_email }}
+    <button type="submit" name="assign_btn">Hakem Ata</button>
+</form>
+
+<h4>📌 Atanmış Hakemler:</h4>
+<ul>
+    {% for assignment in assignments %}
+        <li>{{ assignment.email }} - {{ assignment.status }} ({{ assignment.assigned_at|date:"d M Y H:i" }})</li>
+        <form method="post" action="{% url 'cancel_assigment_review' %}">
+            {% csrf_token %}
+            <input type="hidden" name="article_id" value="{{ article.id }}">
+            <button type="submit" style="background-color:#e74c3c; color:white; padding:10px 20px; border:none; border-radius:5px; cursor:pointer;">
+              Atamayı İptal Et
+            </button>
+          </form>
+          <h4>📌 Değerlendirme Durumu:</h4>
+<ul>
+    
+{% if article.status == "Article Reviewed" %}
+  <form method="post" action="{% url 'send_final_to_author' %}">
+    {% csrf_token %}
+    <input type="hidden" name="article_id" value="{{ article.id }}">
+    <button type="submit" style="background-color:#2ecc71; color:white; padding:10px 20px; border:none; border-radius:5px; cursor:pointer;">
+      Yazara Sonuç PDF'ini Gönder
+    </button>
+  </form>
+  <form method="post" action="{% url 'cancel_review' %}">
+    {% csrf_token %}
+    <input type="hidden" name="article_id" value="{{ article.id }}">
+    <button type="submit" style="background-color:#e74c3c; color:white; padding:10px 20px; border:none; border-radius:5px; cursor:pointer;">
+      Değerlendirmeyi İptal Et
+    </button>
+  </form>
+{% elif article.status == "Result Sent to Author" %}
+  <form method="post" action="{% url 'cancel_review_to_author' %}">
+    {% csrf_token %}
+    <input type="hidden" name="article_id" value="{{ article.id }}">
+    <button type="submit" style="background-color:#e74c3c; color:white; padding:10px 20px; border:none; border-radius:5px; cursor:pointer;">
+      Gönderimi İptal Et
+    </button>
+  </form>
+    {%else %}
+    <li>Değerlendirme Bekliyor.</li>
+{% endif %}
+</ul>
+    {% empty %}
+        <li>Henüz hakem ataması yapılmamış.</li>
+    {% endfor %}
+</ul>
+
+
+<hr>
+
+<h3>📜 İşlem Logları</h3>
+<ul>
+    {% for log in logs %}
+        <li>[{{ log.timestamp|date:"d.m.Y H:i" }}] {{ log.action }} {% if log.detail %}- {{ log.detail }}{% endif %}</li>
+    {% empty %}
+        <li>Log kaydı bulunamadı.</li>
+    {% endfor %}
+</ul>
+
+</body>
+</html>
